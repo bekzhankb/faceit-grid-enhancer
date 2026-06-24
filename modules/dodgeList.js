@@ -2,15 +2,15 @@
 
 const DodgeList = (() => {
 
-    // Безопасный оберточный метод для работы с хранилищем Chrome
+    // Безопасный оберточный метод для работы с локальным хранилищем Chrome
     async function getList() {
         return new Promise((resolve) => {
             try {
-                // Если контекст расширения инвалидирован, chrome.runtime.id будет отсутствовать
                 if (!chrome.runtime?.id) {
                     resolve([]);
                     return;
                 }
+                // Используем STRICTLY local, проверяем ключ 'dodgeList'
                 chrome.storage.local.get(['dodgeList'], (r) => {
                     if (chrome.runtime.lastError) {
                         resolve([]);
@@ -19,7 +19,7 @@ const DodgeList = (() => {
                     }
                 });
             } catch (e) {
-                resolve([]); // Гасим ошибку context invalidated
+                resolve([]);
             }
         });
     }
@@ -32,7 +32,10 @@ const DodgeList = (() => {
                     return;
                 }
                 chrome.storage.local.set({ dodgeList: list }, () => {
-                    if (chrome.runtime.lastError) { /* Игнорируем ошибку */ }
+                    if (!chrome.runtime.lastError) {
+                        // Важно: уведомляем попап и другие модули, что список изменился
+                        chrome.runtime.sendMessage({ action: 'dodgeListUpdated', list }).catch(() => {});
+                    }
                     resolve();
                 });
             } catch (e) {
@@ -56,7 +59,7 @@ const DodgeList = (() => {
 
     // UI: inject "Add to Dodge List" button next to every player nickname
     async function injectButtons() {
-        if (!chrome.runtime?.id) return; // Защита от инвалидированного контекста
+        if (!chrome.runtime?.id) return;
 
         const currentList = await getList();
 
@@ -196,7 +199,6 @@ const DodgeList = (() => {
         document.getElementById('fue-dodge-alert')?.remove();
     }
 
-    // Изменяем селектор лобби, опираясь на реальный HTML со скринов
     function flashLobby() {
         const lobby =
             document.querySelector('[class*="Overview__Grid"]') ||
@@ -218,6 +220,35 @@ const DodgeList = (() => {
             toast.classList.remove('fue-toast--show');
             setTimeout(() => toast.remove(), 400);
         }, 3000);
+    }
+
+    // Слушаем внешние изменения (если игрока удалили прямо из Попапа меню)
+    if (chrome.runtime?.onMessage) {
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.action === 'dodgeListUpdated') {
+                // Принудительно обновляем классы активных кнопок на странице без перезагрузки
+                const updatedList = message.list || [];
+                const buttons = document.querySelectorAll('.fue-dodge-btn');
+                buttons.forEach(btn => {
+                    const el = btn.previousElementSibling;
+                    if (!el) return;
+                    const playerName = el.textContent.trim();
+                    const playerId = extractPlayerId(el) || playerName;
+
+                    const isDodged = updatedList.some(
+                        (p) => p.id === playerId || p.name.toLowerCase() === playerName.toLowerCase()
+                    );
+
+                    if (isDodged) {
+                        btn.classList.add('fue-dodge-btn--active');
+                        btn.title = 'В Dodge List (нажми для удаления)';
+                    } else {
+                        btn.classList.remove('fue-dodge-btn--active');
+                        btn.title = 'Добавить в Dodge List';
+                    }
+                });
+            }
+        });
     }
 
     return { injectButtons, checkLobby, getList, addPlayer, removePlayer };
