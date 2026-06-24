@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FACEIT Grid Enhancer</title>
+    <style>
+        :root {
+            --bg:          #12131a;
+            --surface:     #1e222e;
+            --border:      #2c3142;
+            --text-main:   #ffffff;
+            --text-muted:  #8a93a8;
+
+            --accent:      #ff5500;
+            --success:     #00b159;
+            --danger:      #ff3b30;
+            --empty-slot:  #2d3245;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            width: 320px;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .header__title {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .header__version {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── Container ── */
+        .container {
+            padding: 12px 16px;
+        }
+
+        .group-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            margin-top: 4px;
+        }
+
+        /* ── Repeek Style Row Item ── */
+        .row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+        .row-item__info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .row-item__title {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        .row-item__desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── Native Minimal Switch ── */
+        .switch {
+            position: relative;
+            width: 34px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .slider {
+            position: absolute; inset: 0;
+            background: #363c54;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .switch .slider::after {
+            content: '';
+            position: absolute;
+            left: 2px; top: 2px;
+            width: 14px; height: 14px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.15s;
+        }
+        .switch input:checked + .slider { background: var(--accent); }
+        .switch input:checked + .slider::after { transform: translateX(16px); }
+
+        /* ── Match Tracker Component (30 Matches) ── */
+        .tracker-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .tracker-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .stat-block__val {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .stat-block__val--danger { color: var(--danger); }
+        .stat-block__lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        /* Сетка 30 матчей */
+        .grid-30 {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .grid-dot {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--empty-slot);
+            transition: background 0.15s;
+        }
+        .grid-dot--played { background: var(--success); }
+        .grid-dot--dodged { background: var(--danger); }
+
+        /* ── Action Buttons ── */
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+        .btn {
+            flex: 1;
+            padding: 8px;
+            background: #2c3142;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn:hover {
+            background: #363c54;
+            border-color: #434a66;
+        }
+        .btn--danger-text:hover {
+            color: var(--danger);
+        }
+
+        /* ── Blacklist Area ── */
+        .blacklist-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .blacklist-empty {
+            padding: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .blacklist-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .blacklist-item:last-child { border-bottom: none; }
+        .blacklist-username { font-weight: 500; }
+        .blacklist-remove {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 13px; cursor: pointer;
+        }
+        .blacklist-remove:hover { color: var(--danger); }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <span class="header__title">FACEIT GRID ENHANCER</span>
+    <span class="header__version">v1.0.0</span>
+</div>
+
+<div class="container">
+
+    <!-- ВСЕ ТУМБЛЕРЫ МОДУЛЕЙ -->
+    <div class="group-title">Управление модулями</div>
+
+    <!-- 1. Deep Map Veto -->
+    <div class="row-item">
+        <div class="row-item__info">
+            <span class="row-item__title">AI Deep Map Veto</span>
+            <span class="row-item__desc">Рекомендации пиков и банов в лобби</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="toggle-mapVeto" checked />
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <!-- 2. Smurf Detector -->
+    <div class="row-item">
+        <div class="row-item__info">
+            <span class="row-item__title">Smurf Detector</span>
+            <span class="row-item__desc">Поиск скрытых смурф-аккаунтов игроков</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="toggle-smurfDetector" checked />
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <!-- 3. Dodge Calculator -->
+    <div class="row-item">
+        <div class="row-item__info">
+            <span class="row-item__title">Dodge Calculator</span>
+            <span class="row-item__desc">Калькулятор и трекер штрафов за лив</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="toggle-dodgeCalc" checked />
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <!-- 4. Personal Dodge List -->
+    <div class="row-item">
+        <div class="row-item__info">
+            <span class="row-item__title">Personal Dodge List</span>
+            <span class="row-item__desc">Черный список игроков</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="toggle-dodgeList" checked />
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <!-- 5. General QoL Features -->
+    <div class="row-item">
+        <div class="row-item__info">
+            <span class="row-item__title">General QoL Фичи</span>
+            <span class="row-item__desc">Быстрая проверка инвентаря и линков на хабы</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="toggle-qol" checked />
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Блок статистики 30 игр (Dodge Calculator UI) -->
+    <div class="group-title">Dodge Calculator (Последние 30 матчей)</div>
+
+    <div class="tracker-card" id="panel-dodgeCalc">
+        <div class="tracker-stats">
+            <div>
+                <div class="stat-block__val stat-block__val--danger" id="dodge-count-30">0</div>
+                <div class="stat-block__lbl">Доджи в окне</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="stat-block__val" id="next-penalty-time">30 мин</div>
+                <div class="stat-block__lbl">След. штраф</div>
+            </div>
+        </div>
+
+        <!-- 10x3 сетка в стиле Repeek -->
+        <div class="grid-30" id="match-pool-dots"></div>
+
+        <div class="btn-group">
+            <button class="btn" id="btn-log-played">Сыграно</button>
+            <button class="btn" id="btn-log-dodged">Додж</button>
+        </div>
+    </div>
+
+    <!-- Чёрный список (Dodge List UI) -->
+    <div id="panel-dodgeList">
+        <div class="group-title">Локальный ЧС игроков (<span id="blacklist-total">0</span>)</div>
+
+        <div class="blacklist-box" id="dodge-list-container">
+            <div class="blacklist-empty" id="dodge-list-empty">Список пуст</div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 6px;">
+            <button class="btn btn--danger-text" id="btn-clear-dodgelist">Очистить черный список</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
