@@ -2,22 +2,47 @@
 
 const DodgeList = (() => {
 
-    // Storage helpers
+    // Безопасный оберточный метод для работы с хранилищем Chrome
     async function getList() {
         return new Promise((resolve) => {
-            chrome.storage.local.get(['dodgeList'], (r) => resolve(r.dodgeList || []));
+            try {
+                // Если контекст расширения инвалидирован, chrome.runtime.id будет отсутствовать
+                if (!chrome.runtime?.id) {
+                    resolve([]);
+                    return;
+                }
+                chrome.storage.local.get(['dodgeList'], (r) => {
+                    if (chrome.runtime.lastError) {
+                        resolve([]);
+                    } else {
+                        resolve(r.dodgeList || []);
+                    }
+                });
+            } catch (e) {
+                resolve([]); // Гасим ошибку context invalidated
+            }
         });
     }
 
     async function saveList(list) {
         return new Promise((resolve) => {
-            chrome.storage.local.set({ dodgeList: list }, resolve);
+            try {
+                if (!chrome.runtime?.id) {
+                    resolve();
+                    return;
+                }
+                chrome.storage.local.set({ dodgeList: list }, () => {
+                    if (chrome.runtime.lastError) { /* Игнорируем ошибку */ }
+                    resolve();
+                });
+            } catch (e) {
+                resolve();
+            }
         });
     }
 
     async function addPlayer(player) {
         const list = await getList();
-        // Проверяем и по ID (ник из URL), и по отображаемому имени
         if (list.some((p) => p.id === player.id || p.name.toLowerCase() === player.name.toLowerCase())) return;
         list.push({ ...player, addedAt: Date.now() });
         await saveList(list);
@@ -25,17 +50,16 @@ const DodgeList = (() => {
 
     async function removePlayer(playerId, playerName) {
         const list = await getList();
-        // Удаляем по совпадению любого из параметров для надежности
         const filtered = list.filter((p) => p.id !== playerId && p.name.toLowerCase() !== playerName.toLowerCase());
         await saveList(filtered);
     }
 
     // UI: inject "Add to Dodge List" button next to every player nickname
     async function injectButtons() {
-        // Запрашиваем список ОДИН раз перед циклом для оптимизации
+        if (!chrome.runtime?.id) return; // Защита от инвалидированного контекста
+
         const currentList = await getList();
 
-        // Сборный массив селекторов (точный по FACEIT + запасные)
         const selectors = [
             '[class*="Nickname__Name"]',
             '[class*="PlayerCard"] a',
@@ -47,14 +71,12 @@ const DodgeList = (() => {
         const selectorString = selectors.join(', ');
 
         document.querySelectorAll(selectorString).forEach((el) => {
-            // Избегаем двойного инжекта кнопок
             if (el.dataset.fueDodgeInjected) return;
             el.dataset.fueDodgeInjected = '1';
 
             const playerName = el.textContent.trim();
             if (!playerName) return;
 
-            // Извлекаем ID (ник из ссылки), а если ссылки нет — берем сам никнейм текста
             const playerId = extractPlayerId(el) || playerName;
 
             const btn = document.createElement('button');
@@ -62,7 +84,6 @@ const DodgeList = (() => {
             btn.title      = 'Добавить в Dodge List';
             btn.textContent = '🚫';
 
-            // Сверяем элемент с текущим ЧС
             const isDodged = currentList.some(
                 (p) => p.id === playerId || p.name.toLowerCase() === playerName.toLowerCase()
             );
@@ -75,6 +96,11 @@ const DodgeList = (() => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                if (!chrome.runtime?.id) {
+                    showToast("⚠️ Расширение было обновлено. Пожалуйста, перезагрузите страницу (F5).");
+                    return;
+                }
 
                 const latestList = await getList();
                 const inList = latestList.some(
@@ -94,25 +120,21 @@ const DodgeList = (() => {
                 }
             });
 
-            // Вставляем кнопку сразу после элемента никнейма
             el.insertAdjacentElement('afterend', btn);
         });
     }
 
-    // Extract player FACEIT ID (или никнейм из ссылки) из контекста страницы
     function extractPlayerId(el) {
         const link = el.closest('a') || el.querySelector('a') || (el.tagName === 'A' ? el : null);
         if (link && link.href) {
-            // Ищет паттерны типа /players/челик или /ru/players/челик
             const match = link.href.match(/\/(?:players|profile)\/([^/?#]+)/);
             if (match) return match[1];
         }
         return el.dataset.playerId || el.dataset.userId || null;
     }
 
-    // Lobby check: scan all visible nicknames against dodge list
     async function checkLobby() {
-        // Если алерт уже на экране, не спамим проверками
+        if (!chrome.runtime?.id) return;
         if (document.getElementById('fue-dodge-alert')) return;
 
         const list = await getList();
@@ -135,7 +157,6 @@ const DodgeList = (() => {
             if (id) visibleIds.add(id.toLowerCase());
         });
 
-        // Ищем совпадения в лобби
         const matched = list.filter(
             (p) =>
                 (p.id && visibleIds.has(p.id.toLowerCase())) ||
@@ -148,7 +169,6 @@ const DodgeList = (() => {
         flashLobby();
     }
 
-    // Dodge alert overlay
     function showDodgeAlert(players) {
         removeDodgeAlert();
 
@@ -169,7 +189,6 @@ const DodgeList = (() => {
         overlay.querySelector('.fue-dodge-alert__close').addEventListener('click', removeDodgeAlert);
         document.body.appendChild(overlay);
 
-        // Авто-скрытие плашки через 15 секунд
         setTimeout(removeDodgeAlert, 15000);
     }
 
@@ -177,11 +196,11 @@ const DodgeList = (() => {
         document.getElementById('fue-dodge-alert')?.remove();
     }
 
-    // Red flash on lobby container
+    // Изменяем селектор лобби, опираясь на реальный HTML со скринов
     function flashLobby() {
         const lobby =
+            document.querySelector('[class*="Overview__Grid"]') ||
             document.querySelector('[class*="MatchRoom"]') ||
-            document.querySelector('[class*="match-room"]') ||
             document.querySelector('main');
 
         if (!lobby) return;
@@ -189,7 +208,6 @@ const DodgeList = (() => {
         setTimeout(() => lobby.classList.remove('fue-flash-red'), 3000);
     }
 
-    // Generic toast notification (маленькие всплывашки)
     function showToast(message) {
         const toast = document.createElement('div');
         toast.className   = 'fue-toast';
