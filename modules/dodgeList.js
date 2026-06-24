@@ -161,18 +161,48 @@ const DodgeList = (() => {
     function removeDodgeAlert() { document.getElementById('fue-dodge-alert')?.remove(); }
 
     function showToast(message) {
-        // Защита: удаляем старый тост, если он завис
         document.querySelector('.fue-toast')?.remove();
 
         const toast = document.createElement('div');
         toast.className = 'fue-toast';
+
+        // Инжектим железные стили прямо в элемент, чтобы никакой CSS их не сломал
+        toast.style.cssText = `
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            width: auto !important;
+            max-width: 300px !important;
+            min-width: 200px !important;
+            background: #1e222e !important;
+            border: 1px solid #2c3142 !important;
+            border-left: 4px solid #ff5500 !important;
+            color: #ffffff !important;
+            padding: 12px 16px !important;
+            border-radius: 6px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            font-family: sans-serif !important;
+            z-index: 999999 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+            transition: transform 0.2s ease, opacity 0.2s ease !important;
+            transform: translateY(30px) !important;
+            opacity: 0 !important;
+            display: block !important;
+        `;
+
         toast.textContent = message;
         document.body.appendChild(toast);
 
-        setTimeout(() => toast.classList.add('fue-toast--show'), 50);
         setTimeout(() => {
-            toast.classList.remove('fue-toast--show');
-            setTimeout(() => toast.remove(), 400);
+            toast.style.transform = 'translateY(0) !important';
+            toast.style.opacity = '1 !important';
+        }, 50);
+
+        setTimeout(() => {
+            toast.style.transform = 'translateY(30px) !important';
+            toast.style.opacity = '0 !important';
+            setTimeout(() => toast.remove(), 200);
         }, 3000);
     }
 
