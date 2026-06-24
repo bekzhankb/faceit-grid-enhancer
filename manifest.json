@@ -22,8 +22,8 @@
             "matches": ["https://*.faceit.com/*"],
             "js": [
                 "modules/dodgeList.js",
-                "modules/dodgeCalc.js",
                 "modules/mapVeto.js",
+                "modules/smurfDetector.js",
                 "modules/qolFeatures.js",
                 "content.js"
             ],
