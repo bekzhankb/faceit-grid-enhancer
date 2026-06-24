@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnClearDodge.addEventListener('click', () => {
             if (confirm('Очистить весь Dodge List?')) {
                 chrome.storage.local.set({ dodgeList: [] }, () => {
+                    // Передаем пустой список во вкладку
                     chrome.runtime.sendMessage({ action: 'dodgeListUpdated', list: [] }).catch(() => {});
                     renderDodgeList();
                 });

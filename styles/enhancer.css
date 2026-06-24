@@ -104,3 +104,92 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+/* ============================================================
+   ФИНАЛЬНЫЕ СТИЛИ ДЛЯ СТАТИСТИКИ И ОБНОВЛЕНИЯ ЧС
+   ============================================================ */
+
+/* 1. Кастомная панель статистики под игроком в лобби (под дизайн FACEIT) */
+.fue-player-stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #151722; /* Насыщенный темный фон для контраста */
+    border: 1px solid #2c3142;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fue-stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.fue-stat-val {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'Roboto Mono', Monaco, monospace;
+}
+
+.fue-stat-lbl {
+    font-size: 8px;
+    color: #8a93a8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-top: 1px;
+}
+
+/* 2. Кнопка Dodge List (🚫) возле никнейма */
+.fue-dodge-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: 0.4;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.fue-dodge-btn:hover {
+    transform: scale(1.15);
+    opacity: 0.8;
+}
+
+/* Состояние, когда челик прямо сейчас находится в ЧС */
+.fue-dodge-btn--active {
+    opacity: 1 !important;
+    filter: drop-shadow(0 0 4px rgba(255, 59, 48, 0.6));
+}
+
+/* 3. Всплывающие уведомления (Toasts) внизу экрана */
+.fue-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1e222e;
+    border: 1px solid #2c3142;
+    border-left: 4px solid #ff5500; /* Фирменный оранжевый акцент */
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 999999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+.fue-toast--show {
+    transform: translateY(0);
+    opacity: 1;
+}
