@@ -1,0 +1,106 @@
+/* Базовый стиль для нашей кнопки */
+.fue-dodge-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 6px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+}
+
+.fue-dodge-btn:hover {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+/* Состояние, когда игрок УЖЕ находится в черном списке */
+.fue-dodge-btn--active {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8)) hue-rotate(320deg);
+}
+
+/* Стили для всплывающего алерта "ТОКСИК В ЛОББИ!" */
+#fue-dodge-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #1e1e24;
+    border-left: 5px solid #ff4b4b;
+    color: #ffffff;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 999999;
+    font-family: 'Play', sans-serif;
+    animation: slideIn 0.3s ease-out;
+}
+
+.fue-dodge-alert__inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fue-dodge-alert__icon {
+    font-size: 24px;
+}
+
+.fue-dodge-alert__text strong {
+    display: block;
+    color: #ff4b4b;
+    font-size: 14px;
+}
+
+.fue-dodge-alert__close {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 5px;
+}
+
+.fue-dodge-alert__close:hover {
+    color: #fff;
+}
+
+/* Красная мигающая рамка вокруг лобби (визуальный паник-мод) */
+.fue-flash-red {
+    animation: pulseRed 1s infinite alternate;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulseRed {
+    from { box-shadow: inset 0 0 10px rgba(255, 0, 0, 0); }
+    to { box-shadow: inset 0 0 25px rgba(255, 0, 0, 0.6); }
+}
+
+/* Маленькие тосты (уведомления о добавлении/удалении) */
+.fue-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 999999;
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.fue-toast--show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
