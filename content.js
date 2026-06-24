@@ -51,3 +51,24 @@ new MutationObserver(() => {
 window.addEventListener('load', () => {
     setTimeout(initEnhancer, 2000);
 });
+
+// content.js — Главный диспетчер расширения
+
+console.log("[FACEIT Grid] Content script успешно загружен на страницу!");
+
+// Функция инициализации
+function initEnhancer() {
+    // Проверяем, включен ли модуль DodgeList в настройках, и запускаем его
+    if (typeof DodgeList !== 'undefined') {
+        // Запускаем инжект кнопок 🚫
+        DodgeList.injectButtons();
+
+        // Проверяем лобби на наличие токсиков
+        DodgeList.checkLobby();
+    } else {
+        console.error("[FACEIT Grid] Модуль DodgeList не найден в контексте страницы!");
+    }
+}
+
+// Запускаем проверку каждые 2 секунды, так как FACEIT постоянно обновляет DOM без перезагрузки страниц
+setInterval(initEnhancer, 2000);
