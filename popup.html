@@ -6,13 +6,13 @@
     <title>FACEIT Grid Enhancer</title>
     <style>
         :root {
-            --bg:          #12131a;
-            --surface:     #1e222e;
+            --bg: #020000;
+            --surface: #0d0d13;
             --border:      #2c3142;
             --text-main:   #ffffff;
             --text-muted:  #8a93a8;
 
-            --accent:      #ff5500;
+            --accent: #367523;
             --success:     #00b159;
             --danger:      #ff3b30;
             --empty-slot:  #2d3245;
@@ -21,7 +21,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            width: 320px;
+            width: 310px;
             background: var(--bg);
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -226,12 +226,12 @@
 <div class="container">
 
     <!-- ВСЕ ТУМБЛЕРЫ МОДУЛЕЙ -->
-    <div class="group-title">Управление модулями</div>
+    <div class="group-title">Управление</div>
 
     <!-- 1. Deep Map Veto -->
     <div class="row-item">
         <div class="row-item__info">
-            <span class="row-item__title">AI Deep Map Veto</span>
+            <span class="row-item__title">Deep Map Veto(Скоро)</span>
             <span class="row-item__desc">Рекомендации пиков и банов в лобби</span>
         </div>
         <label class="switch">
@@ -243,8 +243,8 @@
     <!-- 2. Smurf Detector -->
     <div class="row-item">
         <div class="row-item__info">
-            <span class="row-item__title">Smurf Detector</span>
-            <span class="row-item__desc">Поиск скрытых смурф-аккаунтов игроков</span>
+            <span class="row-item__title">Smurf Detector (Скоро)</span>
+            <span class="row-item__desc">Поиск скрытых смурф-аккаунтов</span>
         </div>
         <label class="switch">
             <input type="checkbox" id="toggle-smurfDetector" checked />
@@ -268,7 +268,7 @@
     <!-- 4. General QoL Features -->
     <div class="row-item">
         <div class="row-item__info">
-            <span class="row-item__title">General QoL Фичи</span>
+            <span class="row-item__title">General QoL Фичи(Скоро)</span>
             <span class="row-item__desc">Быстрая проверка инвентаря и линков на хабы</span>
         </div>
         <label class="switch">
@@ -277,17 +277,6 @@
         </label>
     </div>
 
-    <div class="divider"></div>
-
-
-        <!-- 10x3 сетка в стиле Repeek -->
-        <div class="grid-30" id="match-pool-dots"></div>
-
-        <div class="btn-group">
-            <button class="btn" id="btn-log-played">Сыграно</button>
-            <button class="btn" id="btn-log-dodged">Додж</button>
-        </div>
-    </div>
 
     <!-- Чёрный список (Dodge List UI) -->
     <div id="panel-dodgeList">
